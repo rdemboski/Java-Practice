@@ -13,10 +13,10 @@ import java.util.logging.Logger;
 
 public class EnrollmentApplicationUI extends javax.swing.JFrame
 {
-    static final String DB_URL = "jdbc:mysql://localhost:3306/enrollment";
+    static final String DB_URL = "jdbc:mysql://localhost:3306/enroll";
     static final String DB_DRV = "com.mysql.cj.jdbc.Driver";
     static final String DB_USER = "root";
-    static final String DB_PASSWD = "SOnic12!@";
+    static final String DB_PASSWD = "";
     
     Connection conn;
     ResultSet resultSet;
@@ -248,9 +248,8 @@ public class EnrollmentApplicationUI extends javax.swing.JFrame
         try
         {
             
-            String sql, sql2, input1, input2, input3, selectedName;
-            Connection localConn = 
-                    DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWD);
+            String sql, sql2, input1, input2, input3, selectedName, cap = "1";
+            Connection localConn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWD);
             
             input1 = FNameField.getText();
             input2 = LNameField.getText();
@@ -260,11 +259,13 @@ public class EnrollmentApplicationUI extends javax.swing.JFrame
             sql = "INSERT INTO student " + " (id, first_name, last_name)" +
                     " VALUES (?, ?, ?)";
             
-            sql2 = "INSERT INTO enroll" + "(student_id, class_name)" +
-                    " VALUES (?, ?)";
+            sql2 = "INSERT INTO class" + "(id, course_name, cap)" +
+                    " VALUES (?, ?, ?)";
             
             try
             {
+                Class.forName(DB_DRV);
+                
                 prepStatement = localConn.prepareStatement(sql);
                 prepStatement.setString(1, input3);
                 prepStatement.setString(2, input1);
@@ -273,19 +274,26 @@ public class EnrollmentApplicationUI extends javax.swing.JFrame
                 prepStatement2 = localConn.prepareStatement(sql2);
                 prepStatement2.setString(1, input3);
                 prepStatement2.setString(2, selectedName);
+                prepStatement2.setString(3, cap);
                 
-                prepStatement.executeUpdate();
-                prepStatement2.executeUpdate();
+                if (input1 != "" || input2 != "" || input3 != "" || selectedName != "")
+                {
+                    prepStatement.executeUpdate();
+                    prepStatement2.executeUpdate();
+                    resultMessage.setText("You have been enrolled in " + selectedName
+                            + "!");
+                }
                 
-                resultMessage.setText("You have been enrolled in " 
-                        + selectedName + "!");
-                
+                else
+                {
+                    resultMessage.setText("You did not fill all required fields.");
+                }
             }
             
-            catch (SQLException err)
+            catch (SQLException | ClassNotFoundException err)
             {
-                resultMessage.setText("Student already enrolled!");
-            }  
+                err.printStackTrace();
+            }
             
             finally
             {
@@ -305,8 +313,7 @@ public class EnrollmentApplicationUI extends javax.swing.JFrame
         
         catch (SQLException ex)
         {
-            Logger.getLogger(EnrollmentApplicationUI.class.getName())
-                    .log(Level.SEVERE, null, ex);
+            Logger.getLogger(EnrollmentApplicationUI.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_enrollButtonActionPerformed
 
